@@ -8,9 +8,12 @@ class AuthPage extends StatefulWidget {
 }
 
 class _AuthPageState extends State<AuthPage> {
-  String _email = '';
-  String _password = '';
   bool _termsAccepted = false;
+  RegExp emailRegexp = RegExp(
+      r"[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?");
+
+  final Map<String, String> _formState = {'email': null, 'password': null};
+  GlobalKey<FormState> _globalKey = GlobalKey<FormState>();
 
   DecorationImage _buildBackgroundImage() {
     return DecorationImage(
@@ -20,31 +23,37 @@ class _AuthPageState extends State<AuthPage> {
         image: AssetImage('assets/bg.jpg'));
   }
 
-  TextField _buildEmailTextField() {
-    return TextField(
+  TextFormField _buildEmailTextField() {
+    return TextFormField(
         keyboardType: TextInputType.emailAddress,
+        validator: (String value) {
+          if (value.isEmpty || !emailRegexp.hasMatch(value)) {
+            return 'Email is required and should be valid';
+          }
+        },
         decoration: InputDecoration(
             labelText: 'Email',
             filled: true,
             fillColor: Colors.white.withOpacity(0.2)),
-        onChanged: (String value) {
-          setState(() {
-            _email = value;
-          });
+        onSaved: (String value) {
+          _formState['email'] = value;
         });
   }
 
-  TextField _buildPasswordTextfield() {
-    return TextField(
+  TextFormField _buildPasswordTextfield() {
+    return TextFormField(
       obscureText: true,
+      validator: (String value) {
+        if (value.isEmpty || value.length < 6) {
+          return 'Password is required and should be greater then 6 digits';
+        }
+      },
       decoration: InputDecoration(
           labelText: 'Password',
           filled: true,
           fillColor: Colors.white.withOpacity(0.2)),
-      onChanged: (String value) {
-        setState(() {
-          _password = value;
-        });
+      onSaved: (String value) {
+        _formState['_password'] = value;
       },
     );
   }
@@ -61,6 +70,10 @@ class _AuthPageState extends State<AuthPage> {
   }
 
   void _submitForm() {
+    if (_globalKey.currentState.validate()) {
+      return;
+    }
+    _globalKey.currentState.save();
     Navigator.pushReplacementNamed(context, '/products');
   }
 
@@ -79,20 +92,23 @@ class _AuthPageState extends State<AuthPage> {
               child: SingleChildScrollView(
                   child: Container(
                 width: targetWidth,
-                child: Column(
-                  children: <Widget>[
-                    _buildEmailTextField(),
-                    SizedBox(
-                      height: 10.0,
-                    ),
-                    _buildPasswordTextfield(),
-                    _buildAcceptTerms(),
-                    SizedBox(height: 10.0),
-                    RaisedButton(
-                      child: Text('Login'),
-                      onPressed: _submitForm,
-                    )
-                  ],
+                child: Form(
+                  key: _globalKey,
+                  child: Column(
+                    children: <Widget>[
+                      _buildEmailTextField(),
+                      SizedBox(
+                        height: 10.0,
+                      ),
+                      _buildPasswordTextfield(),
+                      _buildAcceptTerms(),
+                      SizedBox(height: 10.0),
+                      RaisedButton(
+                        child: Text('Login'),
+                        onPressed: _submitForm,
+                      )
+                    ],
+                  ),
                 ),
               ))),
         ));
