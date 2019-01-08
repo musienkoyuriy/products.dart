@@ -12,7 +12,7 @@ class ProductDetailsPage extends StatelessWidget {
   final String address;
 
   ProductDetailsPage(
-      this.title, this.imageUrl, this.description, this.price, this.address);
+      this.title, this.description, this.price, this.imageUrl, this.address);
 
   _buildPriceRow() {
     return Row(

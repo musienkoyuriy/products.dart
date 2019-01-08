@@ -70,7 +70,7 @@ class _AuthPageState extends State<AuthPage> {
   }
 
   void _submitForm() {
-    if (_globalKey.currentState.validate()) {
+    if (!_globalKey.currentState.validate()) {
       return;
     }
     _globalKey.currentState.save();
