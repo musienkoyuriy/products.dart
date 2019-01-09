@@ -1,61 +1,64 @@
 import 'package:flutter/material.dart';
+import 'package:scoped_model/scoped_model.dart';
+import '../scoped-models/products.dart';
+import '../models/product.dart';
 
 import '../widgets/products/price_tag.dart';
 import '../widgets/products/address_tag.dart';
 import '../ui_elements/title_default.dart';
 
 class ProductDetailsPage extends StatelessWidget {
-  final String title;
-  final String imageUrl;
-  final double price;
-  final String description;
-  final String address;
+  final int productIndex;
 
-  ProductDetailsPage(
-      this.title, this.description, this.price, this.imageUrl, this.address);
+  ProductDetailsPage(this.productIndex);
 
-  _buildPriceRow() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        TitleDefault(title),
-        SizedBox(width: 5.0),
-        PriceTag(price)
-      ],
-    );
+  _buildPriceRow(Product product) {
+    return ScopedModelDescendant(
+        builder: (BuildContext context, Widget child, ProductsModel model) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          TitleDefault(product.title),
+          SizedBox(width: 5.0),
+          PriceTag(product.price)
+        ],
+      );
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-        onWillPop: () {
-          print('back');
-          Navigator.pop(context, false);
-          return Future.value(false);
-        },
-        child: Scaffold(
-            appBar: AppBar(title: Text(title)),
+    return WillPopScope(onWillPop: () {
+      print('back');
+      Navigator.pop(context, false);
+      return Future.value(false);
+    }, child: ScopedModelDescendant<ProductsModel>(
+      builder: (BuildContext context, Widget child, ProductsModel model) {
+        return Scaffold(
+            appBar: AppBar(title: Text(model.getProduct(productIndex).title)),
             body: Center(
                 child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
-                Image.asset(imageUrl),
+                Image.asset(model.getProduct(productIndex).imageUrl),
                 Container(
                     padding: EdgeInsets.all(10.0),
                     child: Column(
                       children: <Widget>[
-                        _buildPriceRow(),
+                        _buildPriceRow(model.getProduct(productIndex)),
                         SizedBox(
                           height: 10.0,
                         ),
-                        AddressTag(address),
+                        AddressTag('NY'),
                         SizedBox(
                           height: 15.0,
                         ),
-                        Text(description)
+                        Text(model.getProduct(productIndex).description)
                       ],
                     ))
               ],
-            ))));
+            )));
+      },
+    ));
   }
 }

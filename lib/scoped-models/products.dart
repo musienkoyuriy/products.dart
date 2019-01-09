@@ -19,4 +19,8 @@ class ProductsModel extends Model {
   void deleteProduct(int index) {
     _products.removeAt(index);
   }
+
+  Product getProduct(int index) {
+    return _products[index];
+  }
 }
