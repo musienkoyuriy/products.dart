@@ -45,5 +45,5 @@ linked_*.ds
 unlinked.ds
 unlinked_spec.ds
 
-ios
-android
+ios/
+android/
