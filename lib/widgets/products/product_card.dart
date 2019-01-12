@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:scoped_model/scoped_model.dart';
+
 import '../products/price_tag.dart';
 import '../../ui_elements/title_default.dart';
+import '../../scoped-models/products.dart';
 import '../../models/product.dart';
 
 class ProductCard extends StatelessWidget {
-  final Product product;
   final int productIndex;
 
-  ProductCard(this.product, this.productIndex);
+  ProductCard(this.productIndex);
 
   void _goToDetails(BuildContext context) {
     Navigator.pushNamed<bool>(context, '/product/' + productIndex.toString());
   }
 
-  Container _buildTitlePriceRow() {
+  Container _buildTitlePriceRow(Product product) {
     return Container(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -28,38 +30,52 @@ class ProductCard extends StatelessWidget {
         margin: EdgeInsets.only(top: 10.0));
   }
 
-  ButtonBar _buildActionButtons(BuildContext context) {
+  bool isProductStarred(ProductsModel model) {
+    return model.products[productIndex].favorite == true;
+  }
+
+  ButtonBar _buildActionButtons(BuildContext context, ProductsModel model) {
     return ButtonBar(alignment: MainAxisAlignment.center, children: <Widget>[
       IconButton(
-          icon: Icon(Icons.info),
-          color: Theme.of(context).accentColor,
-          onPressed: () {
-            _goToDetails(context);
-          }),
+        icon: Icon(Icons.info),
+        color: Theme.of(context).accentColor,
+        onPressed: () {
+          _goToDetails(context);
+        }
+      ),
       IconButton(
-        icon: Icon(Icons.favorite_border),
+        icon: isProductStarred(model) ? Icon(Icons.star) : Icon(Icons.star_border),
         color: Colors.red,
-        onPressed: () {},
+        onPressed: () {
+          model.selectProduct(productIndex);
+          model.toggleProductFavorite();
+        },
       )
     ]);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-        child: Column(children: <Widget>[
-      Image.asset(product.imageUrl),
-      _buildTitlePriceRow(),
-      DecoratedBox(
-        decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey),
-            borderRadius: BorderRadius.circular(4.0)),
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 6.0, vertical: 2.5),
-          child: Text('United States, NY'),
-        ),
-      ),
-      _buildActionButtons(context)
-    ]));
+    return ScopedModelDescendant<ProductsModel>(
+      builder: (BuildContext context, Widget child, ProductsModel model) {
+        return Card(
+          child: Column(children: <Widget>[
+            Image.asset(model.products[productIndex].imageUrl),
+            _buildTitlePriceRow(model.products[productIndex]),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey),
+                borderRadius: BorderRadius.circular(4.0)
+              ),
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 6.0, vertical: 2.5),
+                child: Text('United States, NY'),
+              ),
+            ),
+            _buildActionButtons(context, model)
+          ])
+        );
+      }
+    );
   }
 }
