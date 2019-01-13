@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:scoped_model/scoped_model.dart';
+import '../scoped-models/main.dart';
 
 class AuthPage extends StatefulWidget {
   @override
@@ -49,12 +51,12 @@ class _AuthPageState extends State<AuthPage> {
         }
       },
       decoration: InputDecoration(
-          labelText: 'Password',
-          filled: true,
-          fillColor: Colors.white.withOpacity(0.2)),
-      onSaved: (String value) {
-        _formState['_password'] = value;
-      },
+        labelText: 'Password',
+        filled: true,
+        fillColor: Colors.white.withOpacity(0.2)),
+        onSaved: (String value) {
+          _formState['_password'] = value;
+        },
     );
   }
 
@@ -69,11 +71,14 @@ class _AuthPageState extends State<AuthPage> {
         title: Text('Accept Terms'));
   }
 
-  void _submitForm() {
+  void _submitForm(Function login) {
     if (!_globalKey.currentState.validate()) {
       return;
     }
     _globalKey.currentState.save();
+
+    login(_formState['email'], _formState['password']);
+
     Navigator.pushReplacementNamed(context, '/products');
   }
 
@@ -103,10 +108,15 @@ class _AuthPageState extends State<AuthPage> {
                       _buildPasswordTextfield(),
                       _buildAcceptTerms(),
                       SizedBox(height: 10.0),
-                      RaisedButton(
-                        child: Text('Login'),
-                        onPressed: _submitForm,
+                      ScopedModelDescendant<MainModel>(
+                        builder: (BuildContext context, Widget child, MainModel model) {
+                          return RaisedButton(
+                            child: Text('Login'),
+                            onPressed: () => _submitForm(model.login),
+                          );
+                        }
                       )
+                      
                     ],
                   ),
                 ),

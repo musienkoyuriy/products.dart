@@ -3,7 +3,7 @@ import 'package:scoped_model/scoped_model.dart';
 
 import '../products/price_tag.dart';
 import '../../ui_elements/title_default.dart';
-import '../../scoped-models/products.dart';
+import '../../scoped-models/main.dart';
 import '../../models/product.dart';
 
 class ProductCard extends StatelessWidget {
@@ -30,11 +30,11 @@ class ProductCard extends StatelessWidget {
         margin: EdgeInsets.only(top: 10.0));
   }
 
-  bool isProductStarred(ProductsModel model) {
+  bool isProductStarred(MainModel model) {
     return model.products[productIndex].favorite == true;
   }
 
-  ButtonBar _buildActionButtons(BuildContext context, ProductsModel model) {
+  ButtonBar _buildActionButtons(BuildContext context, MainModel model) {
     return ButtonBar(alignment: MainAxisAlignment.center, children: <Widget>[
       IconButton(
         icon: Icon(Icons.info),
@@ -56,8 +56,8 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ScopedModelDescendant<ProductsModel>(
-      builder: (BuildContext context, Widget child, ProductsModel model) {
+    return ScopedModelDescendant<MainModel>(
+      builder: (BuildContext context, Widget child, MainModel model) {
         return Card(
           child: Column(children: <Widget>[
             Image.asset(model.products[productIndex].imageUrl),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:scoped_model/scoped_model.dart';
-import '../scoped-models/products.dart';
+import '../scoped-models/main.dart';
 import '../models/product.dart';
 
 import '../widgets/products/price_tag.dart';
@@ -14,7 +14,7 @@ class ProductDetailsPage extends StatelessWidget {
 
   _buildPriceRow(Product product) {
     return ScopedModelDescendant(
-        builder: (BuildContext context, Widget child, ProductsModel model) {
+        builder: (BuildContext context, Widget child, MainModel model) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
@@ -32,8 +32,8 @@ class ProductDetailsPage extends StatelessWidget {
       print('back');
       Navigator.pop(context, false);
       return Future.value(false);
-    }, child: ScopedModelDescendant<ProductsModel>(
-      builder: (BuildContext context, Widget child, ProductsModel model) {
+    }, child: ScopedModelDescendant<MainModel>(
+      builder: (BuildContext context, Widget child, MainModel model) {
         return Scaffold(
             appBar: AppBar(title: Text(model.products[productIndex].title)),
             body: Center(

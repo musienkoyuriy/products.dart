@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:scoped_model/scoped_model.dart';
 import '../widgets/helpers/ensure-visible.dart';
 import '../models/product.dart';
-import '../scoped-models/products.dart';
+import '../scoped-models/main.dart';
 
 class ProductEditPage extends StatefulWidget {
   @override
@@ -84,7 +84,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
         ));
   }
 
-  void _submitForm(ProductsModel model) {
+  void _submitForm(MainModel model) {
     if (!_globalKey.currentState.validate()) {
       return;
     }
@@ -112,7 +112,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
 
   Widget _buildSubmitButton() {
     return ScopedModelDescendant(
-        builder: (BuildContext context, Widget child, ProductsModel model) {
+        builder: (BuildContext context, Widget child, MainModel model) {
       return RaisedButton(
         onPressed: () => _submitForm(model),
         textColor: Colors.white,
@@ -152,8 +152,8 @@ class _ProductEditPageState extends State<ProductEditPage> {
 
   @override
   Widget build(BuildContext context) {
-    return ScopedModelDescendant<ProductsModel>(
-      builder: (BuildContext context, Widget child, ProductsModel model) {
+    return ScopedModelDescendant<MainModel>(
+      builder: (BuildContext context, Widget child, MainModel model) {
         final Widget pageContent = _buildPageContent(context, model.getProduct);
 
         return model.selectedProductIndex == null
