@@ -35,17 +35,17 @@ class ProductDetailsPage extends StatelessWidget {
     }, child: ScopedModelDescendant<MainModel>(
       builder: (BuildContext context, Widget child, MainModel model) {
         return Scaffold(
-            appBar: AppBar(title: Text(model.products[productIndex].title)),
+            appBar: AppBar(title: Text(model.selectedProduct.title)),
             body: Center(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
-                  Image.asset(model.products[productIndex].imageUrl),
+                  Image.asset(model.selectedProduct.imageUrl),
                   Container(
                     padding: EdgeInsets.all(10.0),
                     child: Column(
                       children: <Widget>[
-                        _buildPriceRow(model.products[productIndex]),
+                        _buildPriceRow(model.selectedProduct),
                         SizedBox(
                           height: 10.0,
                         ),
@@ -53,7 +53,7 @@ class ProductDetailsPage extends StatelessWidget {
                         SizedBox(
                           height: 15.0,
                         ),
-                        Text(model.products[productIndex].description)
+                        Text(model.selectedProduct.description)
                       ],
                     ))
                 ],

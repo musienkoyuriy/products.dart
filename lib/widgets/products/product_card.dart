@@ -31,7 +31,7 @@ class ProductCard extends StatelessWidget {
   }
 
   bool isProductStarred(MainModel model) {
-    return model.products[productIndex].favorite == true;
+    return model.allProducts[productIndex].favorite == true;
   }
 
   ButtonBar _buildActionButtons(BuildContext context, MainModel model) {
@@ -60,8 +60,8 @@ class ProductCard extends StatelessWidget {
       builder: (BuildContext context, Widget child, MainModel model) {
         return Card(
           child: Column(children: <Widget>[
-            Image.asset(model.products[productIndex].imageUrl),
-            _buildTitlePriceRow(model.products[productIndex]),
+            Image.asset(model.allProducts[productIndex].imageUrl),
+            _buildTitlePriceRow(model.allProducts[productIndex]),
             DecoratedBox(
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.grey),
@@ -72,6 +72,7 @@ class ProductCard extends StatelessWidget {
                 child: Text('United States, NY'),
               ),
             ),
+            Text(model.allProducts[productIndex].userEmail),
             _buildActionButtons(context, model)
           ])
         );

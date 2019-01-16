@@ -25,7 +25,7 @@ class ProductListPage extends StatelessWidget {
     return ScopedModelDescendant<MainModel>(
         builder: (BuildContext context, Widget child, MainModel model) {
       return Dismissible(
-          key: Key(model.products[index].title),
+          key: Key(model.allProducts[index].title),
           onDismissed: (DismissDirection direction) {
             if (direction == DismissDirection.endToStart) {
               model.selectProduct(index);
@@ -35,11 +35,11 @@ class ProductListPage extends StatelessWidget {
           background: Container(color: Colors.red),
           child: Column(children: <Widget>[
             ListTile(
-              title: Text(model.products[index].title),
+              title: Text(model.allProducts[index].title),
               leading: CircleAvatar(
-                backgroundImage: AssetImage(model.products[index].imageUrl),
+                backgroundImage: AssetImage(model.allProducts[index].imageUrl),
               ),
-              subtitle: Text('\$${model.products[index].price.toString()}'),
+              subtitle: Text('\$${model.allProducts[index].price.toString()}'),
               trailing: _buildEditButton(context, index, model),
             ),
             Divider()
@@ -51,7 +51,7 @@ class ProductListPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return ScopedModelDescendant<MainModel>(
       builder: (BuildContext context, Widget child, MainModel model) {
-        return ListView.builder(itemCount: model.products.length, itemBuilder: _buildProducts);
+        return ListView.builder(itemCount: model.allProducts.length, itemBuilder: _buildProducts);
       });
   }
 }

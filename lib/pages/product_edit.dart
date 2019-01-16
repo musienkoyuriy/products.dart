@@ -91,23 +91,22 @@ class _ProductEditPageState extends State<ProductEditPage> {
 
     _globalKey.currentState.save();
 
-    if (model.getProduct == null) {
-      model.addProduct(Product(
-        title: _formData['title'],
-        description: _formData['description'],
-        price: _formData['price'],
-        imageUrl: _formData['imageUrl']));
+    if (model.selectedProductIndex == null) {
+      model.addProduct(
+        _formData['title'],
+        _formData['description'],
+        _formData['price'],
+        _formData['imageUrl']);
     } else {
       model.updateProduct(
-        Product(
-            title: _formData['title'],
-            description: _formData['description'],
-            price: _formData['price'],
-            imageUrl: _formData['imageUrl'])
+        _formData['title'],
+        _formData['description'],
+        _formData['price'],
+        _formData['imageUrl']
       );
     }
 
-    Navigator.pushReplacementNamed(context, '/products');
+    Navigator.pushReplacementNamed(context, '/products').then((_) => model.selectProduct(null));
   }
 
   Widget _buildSubmitButton() {
@@ -154,7 +153,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
   Widget build(BuildContext context) {
     return ScopedModelDescendant<MainModel>(
       builder: (BuildContext context, Widget child, MainModel model) {
-        final Widget pageContent = _buildPageContent(context, model.getProduct);
+        final Widget pageContent = _buildPageContent(context, model.selectedProduct);
 
         return model.selectedProductIndex == null
           ? pageContent
