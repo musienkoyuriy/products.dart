@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:scoped_model/scoped_model.dart';
+import 'package:http/http.dart' as http;
 import '../models/product.dart';
 import '../models/user.dart';
 
@@ -13,16 +15,31 @@ mixin ConnectedProductsModel on Model {
 
   void addProduct(
       String title, String description, double price, String image) {
-    print(authenticatedUser);
-    final Product product = Product(
+
+    final Map<String, dynamic> productData = {
+      'title': title,
+      'description': description,
+      'imageUrl': 'https://www.hoax-slayer.net/wp-content/uploads/2018/08/chocolate-blocks-140818-1.jpg',
+      'price': price
+    };
+    http.post(
+      "https://products-flutter-fb26d.firebaseio.com/products.json",
+      body: json.encode(productData)
+    ).then((http.Response response) {
+      final Map<String, dynamic> responseData = json.decode(response.body);
+      print(responseData);
+      final Product product = Product(
+        id: "responseData['id']",
         title: title,
         description: description,
         imageUrl: image,
         price: price,
         userEmail: _authenticatedUser.email,
-        userId: _authenticatedUser.id);
-    _products.add(product);
-    notifyListeners();
+        userId: _authenticatedUser.id
+      );
+      _products.add(product);
+      notifyListeners();
+    });
   }
 }
 
@@ -84,7 +101,9 @@ mixin ProductsModel on ConnectedProductsModel {
 
   void selectProduct(int index) {
     _selectedProductIndex = index;
-    notifyListeners();
+    if (_selectedProductIndex != null) {
+      notifyListeners();
+    }
   }
 
   void toggleProductFavorite() {
