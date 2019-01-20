@@ -3,20 +3,34 @@ import 'package:scoped_model/scoped_model.dart';
 import '../pages/product_edit.dart';
 import '../scoped-models/main.dart';
 
-class ProductListPage extends StatelessWidget {
-  Widget _buildEditButton(BuildContext context, int productIndex, MainModel model) {
+class ProductListPage extends StatefulWidget {
+  final MainModel model;
+
+  ProductListPage(this.model);
+
+  @override
+  State<StatefulWidget> createState() {
+    return _ProductListPageState();
+  }
+}
+
+class _ProductListPageState extends State<ProductListPage> {
+  @override
+  initState() {
+    super.initState();
+    widget.model.fetchProducts();
+  }
+
+  Widget _buildEditButton(
+      BuildContext context, int productIndex, MainModel model) {
     return IconButton(
       icon: Icon(Icons.edit),
       onPressed: () {
         model.selectProduct(productIndex);
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (BuildContext context) {
-              return ProductEditPage();
-            }
-          )
-        ).then((_) {
+        Navigator.push(context,
+            MaterialPageRoute(builder: (BuildContext context) {
+          return ProductEditPage();
+        })).then((_) {
           model.selectProduct(null);
         });
       },
@@ -39,7 +53,8 @@ class ProductListPage extends StatelessWidget {
             ListTile(
               title: Text(model.allProducts[index].title),
               leading: CircleAvatar(
-                backgroundImage: AssetImage(model.allProducts[index].imageUrl),
+                backgroundImage:
+                    NetworkImage(model.allProducts[index].imageUrl),
               ),
               subtitle: Text('\$${model.allProducts[index].price.toString()}'),
               trailing: _buildEditButton(context, index, model),
@@ -52,8 +67,11 @@ class ProductListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ScopedModelDescendant<MainModel>(
-      builder: (BuildContext context, Widget child, MainModel model) {
-        return ListView.builder(itemCount: model.allProducts.length, itemBuilder: _buildProducts);
-      });
+        builder: (BuildContext context, Widget child, MainModel model) {
+      return widget.model.isLoading
+          ? CircularProgressIndicator()
+          : ListView.builder(
+              itemCount: model.allProducts.length, itemBuilder: _buildProducts);
+    });
   }
 }

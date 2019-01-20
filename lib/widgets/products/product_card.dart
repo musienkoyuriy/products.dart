@@ -37,14 +37,15 @@ class ProductCard extends StatelessWidget {
   ButtonBar _buildActionButtons(BuildContext context, MainModel model) {
     return ButtonBar(alignment: MainAxisAlignment.center, children: <Widget>[
       IconButton(
-        icon: Icon(Icons.info),
-        color: Theme.of(context).accentColor,
-        onPressed: () {
-          _goToDetails(context);
-        }
-      ),
+          icon: Icon(Icons.info),
+          color: Theme.of(context).accentColor,
+          onPressed: () {
+            _goToDetails(context);
+          }),
       IconButton(
-        icon: isProductStarred(model) ? Icon(Icons.star) : Icon(Icons.star_border),
+        icon: isProductStarred(model)
+            ? Icon(Icons.star)
+            : Icon(Icons.star_border),
         color: Colors.red,
         onPressed: () {
           model.selectProduct(productIndex);
@@ -57,26 +58,29 @@ class ProductCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ScopedModelDescendant<MainModel>(
-      builder: (BuildContext context, Widget child, MainModel model) {
-        return Card(
+        builder: (BuildContext context, Widget child, MainModel model) {
+      return Card(
           child: Column(children: <Widget>[
-            Image.asset(model.allProducts[productIndex].imageUrl),
-            _buildTitlePriceRow(model.allProducts[productIndex]),
-            DecoratedBox(
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey),
-                borderRadius: BorderRadius.circular(4.0)
-              ),
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 6.0, vertical: 2.5),
-                child: Text('United States, NY'),
-              ),
-            ),
-            Text(model.allProducts[productIndex].userEmail),
-            _buildActionButtons(context, model)
-          ])
-        );
-      }
-    );
+        FadeInImage(
+          placeholder: AssetImage("assets/bg.jpg"),
+          height: 300.0,
+          fit: BoxFit.cover,
+          image: NetworkImage(
+            model.allProducts[productIndex].imageUrl)
+          ),
+        _buildTitlePriceRow(model.allProducts[productIndex]),
+        DecoratedBox(
+          decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey),
+              borderRadius: BorderRadius.circular(4.0)),
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 6.0, vertical: 2.5),
+            child: Text('United States, NY'),
+          ),
+        ),
+        Text(model.allProducts[productIndex].userEmail),
+        _buildActionButtons(context, model)
+      ]));
+    });
   }
 }

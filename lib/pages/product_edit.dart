@@ -10,6 +10,7 @@ class ProductEditPage extends StatefulWidget {
     return _ProductEditPageState();
   }
 }
+
 class _ProductEditPageState extends State<ProductEditPage> {
   final Map<String, dynamic> _formData = {
     'title': null,
@@ -92,32 +93,35 @@ class _ProductEditPageState extends State<ProductEditPage> {
     _globalKey.currentState.save();
 
     if (model.selectedProductIndex == null) {
-      model.addProduct(
-        _formData['title'],
-        _formData['description'],
-        _formData['price'],
-        _formData['imageUrl']);
+      model
+          .addProduct(_formData['title'], _formData['description'],
+              _formData['price'], _formData['imageUrl'])
+          .then((_) {
+        Navigator.pushReplacementNamed(context, '/products')
+            .then((_) => model.selectProduct(null));
+      });
     } else {
-      model.updateProduct(
-        _formData['title'],
-        _formData['description'],
-        _formData['price'],
-        _formData['imageUrl']
-      );
+      model
+          .updateProduct(_formData['title'], _formData['description'],
+              _formData['price'], _formData['imageUrl'])
+          .then((_) {
+        Navigator.pushReplacementNamed(context, '/products')
+            .then((_) => model.selectProduct(null));
+      });
     }
-
-    Navigator.pushReplacementNamed(context, '/products').then((_) => model.selectProduct(null));
   }
 
   Widget _buildSubmitButton() {
     return ScopedModelDescendant(
         builder: (BuildContext context, Widget child, MainModel model) {
-      return RaisedButton(
-        onPressed: () => _submitForm(model),
-        textColor: Colors.white,
-        padding: EdgeInsets.all(5.0),
-        child: Text('Save'),
-      );
+      return model.isLoading
+          ? Center(child: CircularProgressIndicator())
+          : RaisedButton(
+              onPressed: () => _submitForm(model),
+              textColor: Colors.white,
+              padding: EdgeInsets.all(5.0),
+              child: Text('Save'),
+            );
     });
   }
 
@@ -126,36 +130,37 @@ class _ProductEditPageState extends State<ProductEditPage> {
     final double targetWidth = deviceWidth > 550.0 ? 500 : deviceWidth * 0.95;
     final double targetPadding = deviceWidth - targetWidth;
 
-        return GestureDetector(
-          onTap: () {
-            FocusScope.of(context).requestFocus(FocusNode());
-          },
-          child: Container(
-            width: targetWidth,
-            margin: EdgeInsets.all(10.0),
-            child: Form(
-              key: _globalKey,
-              child: ListView(
-                padding: EdgeInsets.symmetric(horizontal: targetPadding / 2),
-                children: <Widget>[
-                  _buildTitleTextField(selectedProduct),
-                  _buildDescriptionTextField(selectedProduct),
-                  _buildDescriptionPriceField(selectedProduct),
-                  SizedBox(height: 10.0),
-                  _buildSubmitButton()
-                ],
-              ),
+    return GestureDetector(
+        onTap: () {
+          FocusScope.of(context).requestFocus(FocusNode());
+        },
+        child: Container(
+          width: targetWidth,
+          margin: EdgeInsets.all(10.0),
+          child: Form(
+            key: _globalKey,
+            child: ListView(
+              padding: EdgeInsets.symmetric(horizontal: targetPadding / 2),
+              children: <Widget>[
+                _buildTitleTextField(selectedProduct),
+                _buildDescriptionTextField(selectedProduct),
+                _buildDescriptionPriceField(selectedProduct),
+                SizedBox(height: 10.0),
+                _buildSubmitButton()
+              ],
             ),
-          ));
+          ),
+        ));
   }
 
   @override
   Widget build(BuildContext context) {
     return ScopedModelDescendant<MainModel>(
-      builder: (BuildContext context, Widget child, MainModel model) {
-        final Widget pageContent = _buildPageContent(context, model.selectedProduct);
+        builder: (BuildContext context, Widget child, MainModel model) {
+      final Widget pageContent =
+          _buildPageContent(context, model.selectedProduct);
 
-        return model.selectedProductIndex == null
+      return model.selectedProductIndex == null
           ? pageContent
           : Scaffold(
               appBar: AppBar(
@@ -163,7 +168,6 @@ class _ProductEditPageState extends State<ProductEditPage> {
               ),
               body: pageContent,
             );
-      }
-    );
+    });
   }
 }

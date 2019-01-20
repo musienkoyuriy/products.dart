@@ -40,7 +40,7 @@ class ProductDetailsPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
-                  Image.asset(model.selectedProduct.imageUrl),
+                  Image.network(model.selectedProduct.imageUrl),
                   Container(
                     padding: EdgeInsets.all(10.0),
                     child: Column(
