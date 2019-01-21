@@ -7,7 +7,7 @@ import '../models/user.dart';
 mixin ConnectedProductsModel on Model {
   List<Product> _products = [];
   User _authenticatedUser;
-  int _selectedProductIndex;
+  String _selectedProductId;
   final String API_URL =
       "https://products-flutter-fb26d.firebaseio.com/products.json";
   bool _isLoading = false;
@@ -19,7 +19,7 @@ mixin ConnectedProductsModel on Model {
   Future<Null> fetchProducts() {
     _isLoading = true;
     notifyListeners();
-    return http.get(API_URL).then((http.Response response) {
+    return http.get(API_URL).then<Null>((http.Response response) {
       final List<Product> fetchedProductList = [];
       final Map<String, dynamic> productListData = json.decode(response.body);
       if (productListData == null) {
@@ -37,44 +37,16 @@ mixin ConnectedProductsModel on Model {
           userEmail: productData['userEmail'],
           userId: productData['userId'],
         );
-
         fetchedProductList.add(product);
-        _isLoading = false;
-        notifyListeners();
       });
-      _products = fetchedProductList;
-    });
-  }
-
-  Future<Null> addProduct(
-      String title, String description, double price, String image) {
-    _isLoading = true;
-    notifyListeners();
-    final Map<String, dynamic> productData = {
-      'title': title,
-      'description': description,
-      'imageUrl':
-          'https://www.hoax-slayer.net/wp-content/uploads/2018/08/chocolate-blocks-140818-1.jpg',
-      'price': price,
-      'userEmail': _authenticatedUser.email,
-      'userId': _authenticatedUser.id
-    };
-    return http
-        .post(API_URL, body: json.encode(productData))
-        .then((http.Response response) {
-      final Map<String, dynamic> responseData = json.decode(response.body);
-      print(responseData['id']);
-      final Product product = Product(
-          id: responseData['id'],
-          title: title,
-          description: description,
-          imageUrl: image,
-          price: price,
-          userEmail: _authenticatedUser.email,
-          userId: _authenticatedUser.id);
-      _products.add(product);
       _isLoading = false;
       notifyListeners();
+      _products = fetchedProductList;
+      _selectedProductId = null;
+    }).catchError((error) {
+      _isLoading = false;
+      notifyListeners();
+      return;
     });
   }
 }
@@ -93,6 +65,11 @@ mixin ProductsModel on ConnectedProductsModel {
     return _showFavorites;
   }
 
+  int get selectedProductIndex {
+    return _products
+        .indexWhere((Product product) => product.id == _selectedProductId);
+  }
+
   List<Product> get allProducts {
     return List.from(_products);
   }
@@ -107,17 +84,60 @@ mixin ProductsModel on ConnectedProductsModel {
     return _showFavorites ? favorites : allProducts;
   }
 
-  int get selectedProductIndex {
-    return _selectedProductIndex;
+  String get selectedProductId {
+    return _selectedProductId;
   }
 
   Product get selectedProduct {
-    return _selectedProductIndex == null
+    return _selectedProductId == null
         ? null
-        : _products[selectedProductIndex];
+        : _products
+            .firstWhere((Product product) => product.id == _selectedProductId);
   }
 
-  Future<Null> updateProduct(
+  Future<bool> addProduct(
+      String title, String description, double price, String image) async {
+    _isLoading = true;
+    notifyListeners();
+    final Map<String, dynamic> productData = {
+      'title': title,
+      'description': description,
+      'imageUrl':
+          'https://www.hoax-slayer.net/wp-content/uploads/2018/08/chocolate-blocks-140818-1.jpg',
+      'price': price,
+      'userEmail': _authenticatedUser.email,
+      'userId': _authenticatedUser.id
+    };
+    try {
+      final http.Response response =
+          await http.post(API_URL, body: json.encode(productData));
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+      final Map<String, dynamic> responseData = json.decode(response.body);
+      print(responseData['id']);
+      final Product product = Product(
+          id: responseData['id'],
+          title: title,
+          description: description,
+          imageUrl: image,
+          price: price,
+          userEmail: _authenticatedUser.email,
+          userId: _authenticatedUser.id);
+      _products.add(product);
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (error) {
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> updateProduct(
       String title, String description, double price, String image) {
     _isLoading = true;
     final Map<String, dynamic> productData = {
@@ -146,6 +166,11 @@ mixin ProductsModel on ConnectedProductsModel {
           userId: selectedProduct.userId);
       _products[selectedProductIndex] = updatedProduct;
       notifyListeners();
+      return true;
+    }).catchError((error) {
+      _isLoading = false;
+      notifyListeners();
+      return false;
     });
   }
 
@@ -153,19 +178,24 @@ mixin ProductsModel on ConnectedProductsModel {
     _isLoading = true;
     final deletedProductId = selectedProduct.id;
     _products.removeAt(selectedProductIndex);
-    _selectedProductIndex = null;
+    _selectedProductId = null;
     http
         .delete(
             "https://products-flutter-fb26d.firebaseio.com/products/${deletedProductId}.json")
         .then((http.Response response) {
       _isLoading = false;
       notifyListeners();
+      return true;
+    }).catchError((error) {
+      _isLoading = false;
+      notifyListeners();
+      return false;
     });
   }
 
-  void selectProduct(int index) {
-    _selectedProductIndex = index;
-    if (_selectedProductIndex != null) {
+  void selectProduct(String productId) {
+    _selectedProductId = productId;
+    if (_selectedProductId != null) {
       notifyListeners();
     }
   }
@@ -174,6 +204,7 @@ mixin ProductsModel on ConnectedProductsModel {
     final bool isFavorite = selectedProduct.favorite;
     final bool newFavoriteStatus = !isFavorite;
     final updatedProduct = Product(
+        id: selectedProduct.id,
         description: selectedProduct.description,
         title: selectedProduct.title,
         price: selectedProduct.price,
@@ -181,7 +212,7 @@ mixin ProductsModel on ConnectedProductsModel {
         favorite: newFavoriteStatus,
         userEmail: selectedProduct.userEmail,
         userId: selectedProduct.userId);
-    _products[_selectedProductIndex] = updatedProduct;
+    _products[selectedProductIndex] = updatedProduct;
 
     notifyListeners();
   }

@@ -92,21 +92,56 @@ class _ProductEditPageState extends State<ProductEditPage> {
 
     _globalKey.currentState.save();
 
-    if (model.selectedProductIndex == null) {
+    if (model.selectedProductIndex == -1) {
       model
           .addProduct(_formData['title'], _formData['description'],
               _formData['price'], _formData['imageUrl'])
-          .then((_) {
-        Navigator.pushReplacementNamed(context, '/products')
-            .then((_) => model.selectProduct(null));
+          .then((bool success) {
+        if (success) {
+          Navigator.pushReplacementNamed(context, '/products')
+              .then((_) => model.selectProduct(null));
+        } else {
+          showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text('Something went wrong'),
+                  content: Text('Please try again'),
+                  actions: <Widget>[
+                    FlatButton(
+                        child: Text('OK'),
+                        onPressed: () => Navigator.of(context).pop())
+                  ],
+                );
+              });
+        }
       });
     } else {
       model
           .updateProduct(_formData['title'], _formData['description'],
               _formData['price'], _formData['imageUrl'])
-          .then((_) {
-        Navigator.pushReplacementNamed(context, '/products')
-            .then((_) => model.selectProduct(null));
+          .then((bool success) {
+        if (success) {
+          Navigator.pushReplacementNamed(context, '/products')
+              .then((_) => model.selectProduct(null));
+        } else {
+          showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text('Something went wrong'),
+                  content: Text('Please try again'),
+                  actions: <Widget>[
+                    FlatButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: Text('OK'),
+                    )
+                  ],
+                );
+              });
+        }
       });
     }
   }
@@ -160,7 +195,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
       final Widget pageContent =
           _buildPageContent(context, model.selectedProduct);
 
-      return model.selectedProductIndex == null
+      return model.selectedProductIndex == -1
           ? pageContent
           : Scaffold(
               appBar: AppBar(

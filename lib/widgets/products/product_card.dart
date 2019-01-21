@@ -11,8 +11,8 @@ class ProductCard extends StatelessWidget {
 
   ProductCard(this.productIndex);
 
-  void _goToDetails(BuildContext context) {
-    Navigator.pushNamed<bool>(context, '/product/' + productIndex.toString());
+  void _goToDetails(BuildContext context, String productId) {
+    Navigator.pushNamed<bool>(context, '/product/' + productId);
   }
 
   Container _buildTitlePriceRow(Product product) {
@@ -40,7 +40,7 @@ class ProductCard extends StatelessWidget {
           icon: Icon(Icons.info),
           color: Theme.of(context).accentColor,
           onPressed: () {
-            _goToDetails(context);
+            _goToDetails(context, model.selectedProductId);
           }),
       IconButton(
         icon: isProductStarred(model)
@@ -48,7 +48,7 @@ class ProductCard extends StatelessWidget {
             : Icon(Icons.star_border),
         color: Colors.red,
         onPressed: () {
-          model.selectProduct(productIndex);
+          model.selectProduct(model.allProducts[productIndex].id);
           model.toggleProductFavorite();
         },
       )
@@ -62,12 +62,10 @@ class ProductCard extends StatelessWidget {
       return Card(
           child: Column(children: <Widget>[
         FadeInImage(
-          placeholder: AssetImage("assets/bg.jpg"),
-          height: 300.0,
-          fit: BoxFit.cover,
-          image: NetworkImage(
-            model.allProducts[productIndex].imageUrl)
-          ),
+            placeholder: AssetImage("assets/bg.jpg"),
+            height: 300.0,
+            fit: BoxFit.cover,
+            image: NetworkImage(model.allProducts[productIndex].imageUrl)),
         _buildTitlePriceRow(model.allProducts[productIndex]),
         DecoratedBox(
           decoration: BoxDecoration(
