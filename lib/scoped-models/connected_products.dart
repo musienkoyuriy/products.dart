@@ -3,13 +3,12 @@ import 'package:scoped_model/scoped_model.dart';
 import 'package:http/http.dart' as http;
 import '../models/product.dart';
 import '../models/user.dart';
+import '../models/auth.dart';
 
 mixin ConnectedProductsModel on Model {
   List<Product> _products = [];
   User _authenticatedUser;
   String _selectedProductId;
-  final String API_URL =
-      "https://products-flutter-fb26d.firebaseio.com/products.json";
   bool _isLoading = false;
 
   User get authenticatedUser {
@@ -19,7 +18,7 @@ mixin ConnectedProductsModel on Model {
   Future<Null> fetchProducts() {
     _isLoading = true;
     notifyListeners();
-    return http.get(API_URL).then<Null>((http.Response response) {
+    return http.get('https://products-flutter-fb26d.firebaseio.com/products.json?auth=${_authenticatedUser.token}').then<Null>((http.Response response) {
       final List<Product> fetchedProductList = [];
       final Map<String, dynamic> productListData = json.decode(response.body);
       if (productListData == null) {
@@ -52,7 +51,8 @@ mixin ConnectedProductsModel on Model {
 }
 
 mixin UserModel on ConnectedProductsModel {
-  Future<Map<String, dynamic>> login(String email, String password) async {
+  Future<Map<String, dynamic>> authenticate(String email, String password,
+      [AuthMode authMode = AuthMode.Login]) async {
     _isLoading = true;
     notifyListeners();
 
@@ -61,8 +61,12 @@ mixin UserModel on ConnectedProductsModel {
       'password': password,
       'returnSecureToken': true
     };
+
+    final String flag =
+        authMode == AuthMode.Login ? 'verifyPassword' : 'signupNewUser';
+
     final http.Response response = await http.post(
-        'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword?key=AIzaSyCv5q-i4iU67doXIvZBs0UQJsMjZOxThrk',
+        'https://www.googleapis.com/identitytoolkit/v3/relyingparty/${flag}?key=AIzaSyCv5q-i4iU67doXIvZBs0UQJsMjZOxThrk',
         body: json.encode(user),
         headers: {'Content-Type': 'application/json'});
     final Map<String, dynamic> responseData = json.decode(response.body);
@@ -72,39 +76,16 @@ mixin UserModel on ConnectedProductsModel {
     if (responseData.containsKey('idToken')) {
       hasError = false;
       message = 'Authentication succeeded!';
+      _authenticatedUser = User(
+          id: responseData['localId'],
+          email: email,
+          token: responseData['idToken']);
     } else if (responseData['error']['message'] == 'EMAIL_NOT_FOUND') {
       message = 'Email not found!';
     } else if (responseData['error']['message'] == 'INVALID_PASSWORD') {
       message = 'This password is invalid!';
-    }
-
-    _isLoading = false;
-    notifyListeners();
-
-    return {'success': !hasError, 'message': message};
-  }
-
-  Future<Map<String, dynamic>> signup(String email, String password) async {
-    _isLoading = true;
-    notifyListeners();
-    final Map<String, dynamic> user = {
-      'email': email,
-      'password': password,
-      'returnSecureToken': true
-    };
-    final http.Response response = await http.post(
-        'https://www.googleapis.com/identitytoolkit/v3/relyingparty/signupNewUser?key=AIzaSyCv5q-i4iU67doXIvZBs0UQJsMjZOxThrk',
-        body: json.encode(user),
-        headers: {'Content-Type': 'application/json'});
-    final Map<String, dynamic> responseData = json.decode(response.body);
-    bool hasError = true;
-    String message = 'Something went wrong.';
-
-    if (responseData.containsKey('idToken')) {
-      hasError = false;
-      message = 'Authentication succeeded!';
     } else if (responseData['error']['message'] == 'EMAIL_EXISTS') {
-      message = 'This email already exists';
+      message = 'Email exists!';
     }
 
     _isLoading = false;
@@ -166,7 +147,7 @@ mixin ProductsModel on ConnectedProductsModel {
     };
     try {
       final http.Response response =
-          await http.post(API_URL, body: json.encode(productData));
+          await http.post('https://products-flutter-fb26d.firebaseio.com/products.json?auth=${_authenticatedUser.token}', body: json.encode(productData));
       if (response.statusCode != 200 && response.statusCode != 201) {
         _isLoading = false;
         notifyListeners();
@@ -206,7 +187,7 @@ mixin ProductsModel on ConnectedProductsModel {
     };
     return http
         .put(
-            "https://products-flutter-fb26d.firebaseio.com/products/${selectedProduct.id}.json",
+            "https://products-flutter-fb26d.firebaseio.com/products/${selectedProduct.id}.json?auth=${_authenticatedUser.token}",
             body: json.encode(productData))
         .then((http.Response response) {
       _isLoading = false;
@@ -236,7 +217,7 @@ mixin ProductsModel on ConnectedProductsModel {
     _selectedProductId = null;
     http
         .delete(
-            "https://products-flutter-fb26d.firebaseio.com/products/${deletedProductId}.json")
+            "https://products-flutter-fb26d.firebaseio.com/products/${deletedProductId}.json?auth=${_authenticatedUser.token}")
         .then((http.Response response) {
       _isLoading = false;
       notifyListeners();
