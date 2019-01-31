@@ -67,17 +67,16 @@ class _AuthPageState extends State<AuthPage> {
 
   TextFormField _buildConfirmPasswordTextfield() {
     return TextFormField(
-      obscureText: true,
-      validator: (String value) {
-        if (_passwordTextController.text != value) {
-          return 'Passwords do not match.';
-        }
-      },
-      decoration: InputDecoration(
-          labelText: 'Confirm Password',
-          filled: true,
-          fillColor: Colors.white.withOpacity(0.2))
-    );
+        obscureText: true,
+        validator: (String value) {
+          if (_passwordTextController.text != value) {
+            return 'Passwords do not match.';
+          }
+        },
+        decoration: InputDecoration(
+            labelText: 'Confirm Password',
+            filled: true,
+            fillColor: Colors.white.withOpacity(0.2)));
   }
 
   SwitchListTile _buildAcceptTerms() {
@@ -92,20 +91,27 @@ class _AuthPageState extends State<AuthPage> {
   }
 
   void _submitForm(Function login, Function signup) async {
+    Map<String, dynamic> successInfo;
     if (!_globalKey.currentState.validate()) {
       return;
     }
     _globalKey.currentState.save();
 
     if (_authMode == AuthMode.Login) {
-      login(_formState['email'], _formState['password']);
+      successInfo = await login(_formState['email'], _formState['password']);
     } else {
-      final Map<String, dynamic> successInfo =
-          await signup(_formState['email'], _formState['password']);
+      successInfo = await signup(_formState['email'], _formState['password']);
+    }
 
-      if (successInfo['success']) {
-        Navigator.pushReplacementNamed(context, '/products');
-      }
+    if (successInfo['success']) {
+      Navigator.pushReplacementNamed(context, '/products');
+    } else {
+      showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+                title: Text('Error'), content: Text(successInfo['message']));
+          });
     }
   }
 
@@ -155,13 +161,15 @@ class _AuthPageState extends State<AuthPage> {
                       ScopedModelDescendant<MainModel>(builder:
                           (BuildContext context, Widget child,
                               MainModel model) {
-                        return RaisedButton(
-                          child: Text(_authMode == AuthMode.Login
-                              ? 'Login'
-                              : 'Sign up'),
-                          onPressed: () =>
-                              _submitForm(model.login, model.signup),
-                        );
+                        return model.isLoading
+                            ? CircularProgressIndicator()
+                            : RaisedButton(
+                                child: Text(_authMode == AuthMode.Login
+                                    ? 'Login'
+                                    : 'Sign up'),
+                                onPressed: () =>
+                                    _submitForm(model.login, model.signup),
+                              );
                       })
                     ],
                   ),
