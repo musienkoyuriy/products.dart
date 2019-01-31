@@ -25,7 +25,6 @@ class ProductDetailsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return WillPopScope(
         onWillPop: () {
-          print('back');
           Navigator.pop(context, false);
           return Future.value(false);
         },

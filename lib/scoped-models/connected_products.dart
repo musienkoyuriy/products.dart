@@ -54,7 +54,23 @@ mixin ConnectedProductsModel on Model {
 mixin UserModel on ConnectedProductsModel {
   void login(String email, String password) {
     _authenticatedUser = User(id: '1231', email: email, password: password);
-    print(_authenticatedUser);
+  }
+
+  Future<Map<String, dynamic>> signup(String email, String password) async {
+    final Map<String, dynamic> user = {
+      'email': email,
+      'password': password,
+      'returnSecureToken': true
+    };
+    final http.Response response = await http.post(
+        'https://www.googleapis.com/identitytoolkit/v3/relyingparty/signupNewUser?key=AIzaSyCv5q-i4iU67doXIvZBs0UQJsMjZOxThrk',
+        body: json.encode(user),
+        headers: {
+          'Content-Type': 'application/json'
+        });
+
+    return {'success': true, 'message': 'Auth succeeded!'};
+
   }
 }
 
@@ -117,7 +133,6 @@ mixin ProductsModel on ConnectedProductsModel {
         return false;
       }
       final Map<String, dynamic> responseData = json.decode(response.body);
-      print(responseData['id']);
       final Product product = Product(
           id: responseData['id'],
           title: title,
