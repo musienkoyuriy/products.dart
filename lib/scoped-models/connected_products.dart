@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:scoped_model/scoped_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import '../models/product.dart';
 import '../models/user.dart';
@@ -18,7 +19,10 @@ mixin ConnectedProductsModel on Model {
   Future<Null> fetchProducts() {
     _isLoading = true;
     notifyListeners();
-    return http.get('https://products-flutter-fb26d.firebaseio.com/products.json?auth=${_authenticatedUser.token}').then<Null>((http.Response response) {
+    return http
+        .get(
+            'https://products-flutter-fb26d.firebaseio.com/products.json?auth=${_authenticatedUser.token}')
+        .then<Null>((http.Response response) {
       final List<Product> fetchedProductList = [];
       final Map<String, dynamic> productListData = json.decode(response.body);
       if (productListData == null) {
@@ -80,6 +84,11 @@ mixin UserModel on ConnectedProductsModel {
           id: responseData['localId'],
           email: email,
           token: responseData['idToken']);
+
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.setString('token', responseData['idToken']);
+      prefs.setString('email', email);
+      prefs.setString('userId', responseData['localId']);
     } else if (responseData['error']['message'] == 'EMAIL_NOT_FOUND') {
       message = 'Email not found!';
     } else if (responseData['error']['message'] == 'INVALID_PASSWORD') {
@@ -92,6 +101,19 @@ mixin UserModel on ConnectedProductsModel {
     notifyListeners();
 
     return {'success': !hasError, 'message': message};
+  }
+
+  void autoAuthenticate() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String token = prefs.getString('token');
+
+    if (token != null) {
+      final String userEmail = prefs.getString('email');
+      final String userId = prefs.getString('userId');
+
+      _authenticatedUser = User(id: userId, email: userEmail, token: token);
+      notifyListeners();
+    }
   }
 }
 
@@ -146,8 +168,9 @@ mixin ProductsModel on ConnectedProductsModel {
       'userId': _authenticatedUser.id
     };
     try {
-      final http.Response response =
-          await http.post('https://products-flutter-fb26d.firebaseio.com/products.json?auth=${_authenticatedUser.token}', body: json.encode(productData));
+      final http.Response response = await http.post(
+          'https://products-flutter-fb26d.firebaseio.com/products.json?auth=${_authenticatedUser.token}',
+          body: json.encode(productData));
       if (response.statusCode != 200 && response.statusCode != 201) {
         _isLoading = false;
         notifyListeners();
