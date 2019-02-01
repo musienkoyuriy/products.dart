@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import './product_edit.dart';
 import './product_list.dart';
 import '../scoped-models/main.dart';
+import '../ui_elements/logout_list_tile.dart';
 
 class ProductAdmin extends StatelessWidget {
   final MainModel model;
 
-ProductAdmin(this.model);
+  ProductAdmin(this.model);
 
   Widget _buildSideDrawer(BuildContext context) {
     return Drawer(
@@ -22,7 +23,9 @@ ProductAdmin(this.model);
             onTap: () {
               Navigator.pushReplacementNamed(context, '/products');
             },
-          )
+          ),
+          Divider(),
+          LogoutListTile()
         ],
       ),
     );
