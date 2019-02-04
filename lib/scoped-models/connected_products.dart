@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:rxdart/rxdart.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
 import '../models/product.dart';
@@ -57,6 +58,11 @@ mixin ConnectedProductsModel on Model {
 
 mixin UserModel on ConnectedProductsModel {
   Timer _authTimer;
+  PublishSubject<bool> _userSubject = PublishSubject<bool>();
+
+  PublishSubject<bool> get userSubject {
+    return _userSubject;
+  }
 
   Future<Map<String, dynamic>> authenticate(String email, String password,
       [AuthMode authMode = AuthMode.Login]) async {
@@ -89,6 +95,7 @@ mixin UserModel on ConnectedProductsModel {
           token: responseData['idToken']);
 
       setAuthTimeout(int.parse(responseData['expiresIn']));
+      _userSubject.add(true);
       final DateTime now = DateTime.now();
       final DateTime expiryTime = now.add(Duration(seconds: int.parse(responseData['expiresIn'])));
 
@@ -128,6 +135,7 @@ mixin UserModel on ConnectedProductsModel {
       final tokenLifespan = parsedExpiryTime.difference(now).inSeconds;
 
       _authenticatedUser = User(id: userId, email: userEmail, token: token);
+      _userSubject.add(true);
       setAuthTimeout(tokenLifespan);
       notifyListeners();
     }
@@ -135,15 +143,20 @@ mixin UserModel on ConnectedProductsModel {
 
   void logout() async {
     _authenticatedUser = null;
+    _userSubject.add(false);
     _authTimer.cancel();
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.remove('token');
     prefs.remove('userId');
     prefs.remove('email');
+    userSubject.add(false);
   }
 
   void setAuthTimeout(int time) {
-    _authTimer = Timer(Duration(milliseconds: time), logout);
+    _authTimer = Timer(Duration(milliseconds: time * 5), () {
+      logout();
+      _userSubject.add(false);
+    });
   }
 }
 

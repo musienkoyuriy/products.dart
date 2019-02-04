@@ -21,7 +21,7 @@ class ProductAdmin extends StatelessWidget {
             leading: Icon(Icons.list),
             title: Text('Back to products'),
             onTap: () {
-              Navigator.pushReplacementNamed(context, '/products');
+              Navigator.pushReplacementNamed(context, '/');
             },
           ),
           Divider(),
